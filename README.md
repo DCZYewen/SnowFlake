@@ -6,9 +6,9 @@ You can see some details of SnowFlake in this [Blog](https://blog.twitter.com/en
 
 ### Get Started
 
-This is a head-only impelement of the SnowFlake Algorithm. The algorithm code is in [SnowFlake.h](./SnowFlake.h) and the test code is in [test/test_SnowFlake.cc](./test/test_SnowFlake.cc). You can see the usage in the test code too.
+This is a library work as a python module, which implemented twitter's SnowFlake algorithm.
 
-```shell
-make                # complie the test
-make test    # run the test
-```
+Many thanks to [Shenggan](https://github.com/Shenggan) , who originnally implemented this algorithm in C++. 
+
+### Platforms
+On Windows, MSVC is supported which is not implemented originnally by Shenggan.

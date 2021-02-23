@@ -1,8 +1,44 @@
 #include <stdint.h>
+
+#ifdef _WIN32
+
+#ifndef __GNUC__
+//detects msvc compile marco but clang-cl icl should not work
+
+#include <winsock2.h>
+int gettimeofday(struct timeval * tp, struct timezone * tzp)
+{
+    // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+    // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+    // until 00:00:00 January 1, 1970 
+    static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
+
+    SYSTEMTIME  system_time;
+    FILETIME    file_time;
+    uint64_t    time;
+
+    GetSystemTime( &system_time );
+    SystemTimeToFileTime( &system_time, &file_time );
+    time =  ((uint64_t)file_time.dwLowDateTime )      ;
+    time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+    tp->tv_sec  = (long) ((time - EPOCH) / 10000000L);
+    tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
+    return 0;
+}
+#else
 #include <sys/time.h>
+#endif
+
+#endif
+
+#ifdef __linux__
+//linux marcos is supported.
+#include <sys/time.h>
+#endif
+
 #include <stdexcept>
 #include <mutex>
-#include "utils/lightlog.h"
 
 class SnowFlake {
 private:
@@ -47,11 +83,9 @@ private:
 public:
     SnowFlake(int datacenter_Id, int machine_Id) {
         if ((uint64_t)datacenter_Id > max_datacenter_num_ || datacenter_Id < 0) {
-            LLOG(ERRO) << "datacenterId can't be greater than max_datacenter_num_ or less than 0";
             exit(0);
         }
         if ((uint64_t)machine_Id > max_machine_num_ || machine_Id < 0) {
-            LLOG(ERRO) << "machineId can't be greater than max_machine_num_or less than 0";
             exit(0);
         }
         datacenterId = datacenter_Id;
@@ -64,7 +98,6 @@ public:
         std::unique_lock<std::mutex> lock(mutex_);
         uint64_t currStmp = getNewstmp();
         if (currStmp < lastStmp) {
-            LLOG(ERRO) << "Clock moved backwards.  Refusing to generate id";
             exit(0);
         }
 

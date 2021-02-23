@@ -1,3 +1,2 @@
-test_SnowFlake
-.DS_Store
-output.log
+build/
+build/*.**
